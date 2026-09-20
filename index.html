@@ -1,0 +1,785 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Venera · AI · WEB · CODE</title>
+
+<!-- Шрифт Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+<!-- Telegram WebApp -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+  /* ============================================================
+     Сброс и базовые стили
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0A0A12;
+    --cyan: #22D3EE;
+    --violet: #8B5CF6;
+    --magenta: #D946EF;
+    --text: #ECECF5;
+    --muted: #9AA0B5;
+    --glass: rgba(255, 255, 255, 0.06);
+    --glass-strong: rgba(255, 255, 255, 0.1);
+    --border: rgba(255, 255, 255, 0.1);
+    --radius-card: 20px;
+    --radius-btn: 14px;
+    --gradient: linear-gradient(135deg, #22D3EE 0%, #8B5CF6 50%, #D946EF 100%);
+    --shadow-neon: 0 0 40px rgba(139, 92, 246, 0.25);
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Неоновые свечения на фоне */
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    z-index: 0;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  body::before {
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, #22D3EE 0%, transparent 70%);
+    top: -120px; left: -100px;
+  }
+  body::after {
+    width: 460px; height: 460px;
+    background: radial-gradient(circle, #D946EF 0%, transparent 70%);
+    bottom: -160px; right: -120px;
+    opacity: 0.35;
+  }
+
+  /* ============================================================
+     Контейнер
+     ============================================================ */
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ============================================================
+     Шапка
+     ============================================================ */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 0;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(10, 10, 18, 0.55);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    white-space: nowrap;
+  }
+
+  .btn {
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius-btn);
+    padding: 11px 18px;
+    background: var(--gradient);
+    background-size: 150% 150%;
+    transition: transform 0.2s ease, box-shadow 0.3s ease, opacity 0.2s ease;
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+    white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 26px rgba(139, 92, 246, 0.5); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-ghost {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: var(--text);
+    box-shadow: none;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .btn-ghost:hover { background: var(--glass-strong); }
+
+  /* ============================================================
+     Карточки
+     ============================================================ */
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 20px;
+  }
+
+  .section { padding: 18px 0; }
+  .section-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 14px;
+    letter-spacing: 0.2px;
+  }
+  .section-sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+
+  /* ============================================================
+     Карточка автора
+     ============================================================ */
+  .author {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    padding: 3px;
+    background: var(--gradient);
+    flex-shrink: 0;
+  }
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    border: 2px solid #0A0A12;
+  }
+  .author-info .author-name {
+    font-size: 17px;
+    font-weight: 800;
+    margin-bottom: 3px;
+  }
+  .author-info .author-role {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* ============================================================
+     Чат
+     ============================================================ */
+  .chat-card {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+  }
+  .chat-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .chat-head .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #22D3EE;
+    box-shadow: 0 0 12px #22D3EE;
+  }
+  .chat-head .name { font-weight: 700; font-size: 15px; }
+  .chat-head .status { font-size: 12px; color: #22D3EE; }
+
+  .chat-body {
+    height: 360px;
+    overflow-y: auto;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+  /* Кастомный скроллбар */
+  .chat-body::-webkit-scrollbar { width: 6px; }
+  .chat-body::-webkit-scrollbar-track { background: transparent; }
+  .chat-body::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 6px;
+  }
+
+  .msg {
+    max-width: 80%;
+    padding: 11px 15px;
+    font-size: 14px;
+    line-height: 1.45;
+    word-wrap: break-word;
+    animation: pop 0.25s ease;
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Пузырь агента (слева) — стеклянный */
+  .msg.agent {
+    align-self: flex-start;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 16px 16px 16px 4px;
+    color: var(--text);
+  }
+  /* Пузырь пользователя (справа) — градиентный */
+  .msg.user {
+    align-self: flex-end;
+    background: var(--gradient);
+    color: #fff;
+    border-radius: 16px 16px 4px 16px;
+    box-shadow: 0 6px 18px rgba(139, 92, 246, 0.35);
+  }
+
+  /* Индикатор «печатает…» */
+  .typing {
+    align-self: flex-start;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 16px 16px 16px 4px;
+    padding: 14px 16px;
+    display: none;
+    gap: 5px;
+  }
+  .typing.show { display: flex; }
+  .typing span {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--muted);
+    animation: blink 1.3s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  /* Поле ввода чата */
+  .chat-input {
+    display: flex;
+    gap: 10px;
+    padding: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .chat-input input {
+    flex: 1;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-btn);
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  .chat-input input::placeholder { color: var(--muted); }
+  .chat-input input:focus { border-color: rgba(139, 92, 246, 0.6); }
+  .chat-input button {
+    padding: 12px 18px;
+  }
+
+  /* ============================================================
+     Услуги
+     ============================================================ */
+  .services {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  @media (min-width: 560px) {
+    .services { grid-template-columns: 1fr 1fr; }
+  }
+  .service {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 18px;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+  }
+  .service:hover {
+    transform: translateY(-3px);
+    border-color: rgba(139, 92, 246, 0.5);
+  }
+  .service .ic {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--gradient);
+    margin-bottom: 12px;
+    font-size: 20px;
+  }
+  .service h3 { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+  .service p { font-size: 13px; color: var(--muted); }
+  .service .price {
+    margin-top: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ============================================================
+     Форма заявки
+     ============================================================ */
+  .form { display: flex; flex-direction: column; gap: 12px; }
+  .form label { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .form .field { display: flex; flex-direction: column; gap: 6px; }
+  .form input,
+  .form textarea {
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-btn);
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+    width: 100%;
+    resize: vertical;
+  }
+  .form input::placeholder,
+  .form textarea::placeholder { color: var(--muted); }
+  .form input:focus,
+  .form textarea:focus { border-color: rgba(139, 92, 246, 0.6); }
+  .form textarea { min-height: 90px; }
+  .form .btn { align-self: flex-start; margin-top: 4px; }
+
+  .form-success {
+    display: none;
+    margin-top: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius-btn);
+    background: rgba(34, 211, 238, 0.1);
+    border: 1px solid rgba(34, 211, 238, 0.4);
+    color: #22D3EE;
+    font-size: 14px;
+    font-weight: 500;
+    animation: pop 0.3s ease;
+  }
+  .form-success.show { display: block; }
+
+  /* ============================================================
+     Футер
+     ============================================================ */
+  .footer {
+    margin-top: auto;
+    padding: 22px 0 calc(22px + env(safe-area-inset-bottom));
+    text-align: center;
+    border-top: 1px solid var(--border);
+    background: rgba(10, 10, 18, 0.5);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .footer .ft-title { font-size: 13px; color: var(--text); font-weight: 600; margin-bottom: 6px; }
+  .footer a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #22D3EE;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+  .footer a:hover { opacity: 0.8; }
+</style>
+</head>
+<body>
+
+  <div class="wrap">
+
+    <!-- ============ 1. ШАПКА ============ -->
+    <header class="header">
+      <div class="logo">Venera · AI · WEB · CODE</div>
+      <button class="btn" onclick="scrollToLead()">Заказать</button>
+    </header>
+
+    <!-- ============ 0. КАРТОЧКА АВТОРА ============ -->
+    <section class="section">
+      <div class="card author">
+        <div class="avatar">
+          <img src="venera.jpg" alt="Венера" />
+        </div>
+        <div class="author-info">
+          <div class="author-name">Венера</div>
+          <div class="author-role">веб-разработчик и специалист по ИИ</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 2. ЧАТ С ИИ-АГЕНТОМ ============ -->
+    <section class="section">
+      <div class="section-title">ИИ-ассистент</div>
+      <div class="section-sub">Задайте вопрос — агент ответит про услуги, цены и сроки</div>
+      <div class="card chat-card">
+        <div class="chat-head">
+          <span class="dot"></span>
+          <div>
+            <div class="name">Ассистент Венеры</div>
+            <div class="status">на связи</div>
+          </div>
+        </div>
+
+        <div class="chat-body" id="chatBody">
+          <!-- Сообщения добавляются из JS -->
+          <!-- Индикатор «печатает…» -->
+          <div class="typing" id="typing">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="chat-input">
+          <input id="chatInput" type="text" placeholder="Напишите сообщение…" autocomplete="off" />
+          <button class="btn" id="chatSend" onclick="sendChat()">Отправить</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 4. УСЛУГИ ============ -->
+    <section class="section">
+      <div class="section-title">Услуги</div>
+      <div class="section-sub">Премиальные решения под ваш бюджет</div>
+      <div class="services">
+        <div class="service">
+          <div class="ic">🌐</div>
+          <h3>Лендинги на чистом коде</h3>
+          <p>Уникальный дизайн, высокая скорость, чистый код без конструкторов.</p>
+          <div class="price">от 15 000 ₽</div>
+        </div>
+        <div class="service">
+          <div class="ic">🎨</div>
+          <h3>Сайты на Tilda</h3>
+          <p>Быстрая сборка стильного сайта на платформе Tilda.</p>
+          <div class="price">от 10 000 ₽</div>
+        </div>
+        <div class="service">
+          <div class="ic">🤖</div>
+          <h3>Telegram-боты и ИИ-агенты</h3>
+          <p>Умные боты с ИИ: автоматизация, поддержка, продажи.</p>
+          <div class="price">от 25 000 ₽</div>
+        </div>
+        <div class="service">
+          <div class="ic">📦</div>
+          <h3>Карточки Ozon / WB</h3>
+          <p>Дизайн карточек товаров, повышающий конверсию.</p>
+          <div class="price">от 2 000 ₽</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3. ФОРМА ЗАЯВКИ ============ -->
+    <section class="section" id="lead">
+      <div class="section-title">Оставить заявку</div>
+      <div class="section-sub">Венера свяжется с вами в течение дня</div>
+      <div class="card">
+        <form class="form" id="leadForm" onsubmit="sendLead(event)">
+          <div class="field">
+            <label for="leadName">Имя</label>
+            <input id="leadName" type="text" placeholder="Как к вам обращаться" required />
+          </div>
+          <div class="field">
+            <label for="leadContact">Контакт (Telegram / телефон / почта)</label>
+            <input id="leadContact" type="text" placeholder="@username, +7… или e-mail" required />
+          </div>
+          <div class="field">
+            <label for="leadMessage">Что вас интересует?</label>
+            <textarea id="leadMessage" placeholder="Опишите задачу или задайте вопрос"></textarea>
+          </div>
+          <button class="btn" type="submit" id="leadSend">Отправить заявку</button>
+        </form>
+        <div class="form-success" id="leadSuccess">
+          ✅ Заявка принята! Венера скоро свяжется с вами.
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ============ 5. ФУТЕР ============ -->
+  <footer class="footer">
+    <div class="ft-title">Венера · Нейросети, чистый код, премиум-сайты</div>
+    <a href="https://t.me/venera_poddergka" target="_blank" rel="noopener">
+      ✈ Telegram: @venera_poddergka
+    </a>
+  </footer>
+
+<script>
+/* ============================================================
+   ИНИЦИАЛИЗАЦИЯ TELEGRAM WEBAPP
+   ============================================================ */
+(function initTelegram() {
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready();     // Сообщаем ТГ, что приложение готово
+    window.Telegram.WebApp.expand();     // Разворачиваем на весь экран
+    // Подстраиваем фон под фирменный стиль
+    if (window.Telegram.WebApp.setBackgroundColor) {
+      window.Telegram.WebApp.setBackgroundColor('#0A0A12');
+    }
+    if (window.Telegram.WebApp.setHeaderColor) {
+      window.Telegram.WebApp.setHeaderColor('#0A0A12');
+    }
+  }
+})();
+
+/* ============================================================
+   КОНФИГ: ссылка на Google Apps Script (PIPE)
+   ============================================================ */
+const PIPE_URL = 'https://script.google.com/macros/s/AKfycby84E7ypYRb6EGsZfJd3IcaHiFoGX4smMr-zvi2nw7rQR_NvC4G2klOrBrIDjHX7xdg/exec';
+
+/* ============================================================
+   ЧАТ С ИИ-АГЕНТОМ (через JSONP, без CORS)
+   ============================================================ */
+const chatBody  = document.getElementById('chatBody');
+const chatInput = document.getElementById('chatInput');
+const chatSend  = document.getElementById('chatSend');
+const typing    = document.getElementById('typing');
+
+let chatTimer = null;     // таймаут ожидания ответа
+let currentScript = null; // текущий активный <script> JSONP
+
+/* Глобальный callback для ответов чата */
+window.onAgent = function (data) {
+  // Очищаем таймер и тег script
+  clearTimeout(chatTimer);
+  removeScript();
+  hideTyping();
+
+  if (data && data.ok && data.reply) {
+    addMessage('agent', data.reply);
+  } else {
+    addMessage('agent', 'Агент временно недоступен. Попробуйте ещё раз или оставьте заявку ниже.');
+  }
+  unlockChat();
+};
+
+/* Добавление сообщения в чат */
+function addMessage(role, text) {
+  const el = document.createElement('div');
+  el.className = 'msg ' + (role === 'agent' ? 'agent' : 'user');
+  el.textContent = text;
+  // Вставляем перед индикатором «печатает…», чтобы он оставался внизу
+  chatBody.insertBefore(el, typing);
+  scrollChat();
+}
+
+/* Анимация «печатает…» */
+function showTyping() { typing.classList.add('show'); scrollChat(); }
+function hideTyping() { typing.classList.remove('show'); }
+
+/* Прокрутка чата вниз */
+function scrollChat() {
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+/* Блокировка/разблокировка кнопки чата */
+function lockChat() {
+  chatSend.disabled = true;
+  chatInput.disabled = true;
+}
+function unlockChat() {
+  chatSend.disabled = false;
+  chatInput.disabled = false;
+  chatInput.focus();
+}
+
+/* Удаление текущего JSONP-тега */
+function removeScript() {
+  if (currentScript && currentScript.parentNode) {
+    currentScript.parentNode.removeChild(currentScript);
+  }
+  currentScript = null;
+}
+
+/* Отправка сообщения агенту */
+function sendChat() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  // Показываем сообщение пользователя
+  addMessage('user', text);
+  chatInput.value = '';
+
+  // Блокируем ввод и показываем индикатор
+  lockChat();
+  showTyping();
+
+  // Создаём JSONP-запрос
+  const src = PIPE_URL +
+    '?action=chat' +
+    '&msg=' + encodeURIComponent(text) +
+    '&callback=onAgent';
+
+  currentScript = document.createElement('script');
+  currentScript.src = src;
+  currentScript.async = true;
+  currentScript.onerror = function () {
+    // Сеть/ошибка загрузки скрипта
+    clearTimeout(chatTimer);
+    removeScript();
+    hideTyping();
+    addMessage('agent', 'Агент временно недоступен. Проверьте подключение.');
+    unlockChat();
+  };
+  document.body.appendChild(currentScript);
+
+  // Таймаут 20 секунд
+  chatTimer = setTimeout(function () {
+    removeScript();
+    hideTyping();
+    addMessage('agent', 'Агент не ответил за 20 секунд. Попробуйте позже или оставьте заявку.');
+    unlockChat();
+  }, 20000);
+}
+
+/* Отправка по Enter */
+chatInput.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && !chatSend.disabled) {
+    sendChat();
+  }
+});
+
+/* Приветствие агента при открытии */
+addMessage('agent', 'Привет! Я ИИ-ассистент Венеры. Расскажу про услуги, цены и сроки. Что вас интересует?');
+
+/* ============================================================
+   ФОРМА ЗАЯВКИ (через JSONP)
+   ============================================================ */
+const leadForm    = document.getElementById('leadForm');
+const leadSend    = document.getElementById('leadSend');
+const leadSuccess = document.getElementById('leadSuccess');
+
+let leadTimer = null;
+let leadScript = null;
+
+/* Глобальный callback для ответов формы */
+window.onLead = function (data) {
+  clearTimeout(leadTimer);
+  removeLeadScript();
+
+  if (data && data.ok) {
+    // Успех: показываем сообщение и очищаем форму
+    leadSuccess.classList.add('show');
+    leadForm.reset();
+    leadSend.disabled = false;
+    // Прячем сообщение об успехе через 6 секунд
+    setTimeout(function () { leadSuccess.classList.remove('show'); }, 6000);
+  } else {
+    // Ошибка: даём пользователю возможность попробовать снова
+    leadSend.disabled = false;
+    alert('Не удалось отправить заявку. Попробуйте ещё раз или напишите в Telegram @venera_poddergka');
+  }
+};
+
+function removeLeadScript() {
+  if (leadScript && leadScript.parentNode) {
+    leadScript.parentNode.removeChild(leadScript);
+  }
+  leadScript = null;
+}
+
+/* Отправка заявки */
+function sendLead(event) {
+  event.preventDefault();
+
+  const name    = document.getElementById('leadName').value.trim();
+  const contact = document.getElementById('leadContact').value.trim();
+  const message = document.getElementById('leadMessage').value.trim();
+
+  if (!name || !contact) return;
+
+  // Блокируем кнопку на время отправки
+  leadSend.disabled = true;
+  leadSuccess.classList.remove('show');
+
+  // JSONP-запрос
+  const src = PIPE_URL +
+    '?action=lead' +
+    '&name=' + encodeURIComponent(name) +
+    '&contact=' + encodeURIComponent(contact) +
+    '&message=' + encodeURIComponent(message) +
+    '&callback=onLead';
+
+  leadScript = document.createElement('script');
+  leadScript.src = src;
+  leadScript.async = true;
+  leadScript.onerror = function () {
+    clearTimeout(leadTimer);
+    removeLeadScript();
+    leadSend.disabled = false;
+    alert('Не удалось отправить заявку. Проверьте подключение.');
+  };
+  document.body.appendChild(leadScript);
+
+  // Таймаут 25 секунд для формы
+  leadTimer = setTimeout(function () {
+    removeLeadScript();
+    leadSend.disabled = false;
+    alert('Время ожидания истекло. Попробуйте позже или напишите в Telegram @venera_poddergka');
+  }, 25000);
+}
+
+/* ============================================================
+   ПРОКРУТКА К ФОРМЕ ЗАЯВКИ
+   ============================================================ */
+function scrollToLead() {
+  document.getElementById('lead').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(function () { document.getElementById('leadName').focus(); }, 600);
+}
+</script>
+</body>
+</html>
