@@ -1,3 +1,4 @@
+﻿
 ﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -498,14 +499,8 @@
         <div class="service">
           <div class="ic">🌐</div>
           <h3>Лендинги на чистом коде</h3>
-          <p>Уникальный дизайн, высокая скорость, чистый код без конструкторов.</p>
+          <p>Уникальный дизайн, высокая скорость, чистый код без конструкторов. Цена — за одну страницу без интеграций.</p>
           <div class="price">от 15 000 ₽</div>
-        </div>
-        <div class="service">
-          <div class="ic">🎨</div>
-          <h3>Сайты на Tilda</h3>
-          <p>Быстрая сборка стильного сайта на платформе Tilda.</p>
-          <div class="price">от 10 000 ₽</div>
         </div>
         <div class="service">
           <div class="ic">🤖</div>
@@ -560,13 +555,12 @@
 
 <script>
 /* ============================================================
-   ИНИЦИАЛИЗАЦИЯ TELEGRAM WEBAPP
+   ИНИЦИАЛИЗАЦИЯ TELEGRAM WEBAPP (сохранено для Mini App)
    ============================================================ */
 (function initTelegram() {
   if (window.Telegram && window.Telegram.WebApp) {
-    window.Telegram.WebApp.ready();     // Сообщаем ТГ, что приложение готово
-    window.Telegram.WebApp.expand();     // Разворачиваем на весь экран
-    // Подстраиваем фон под фирменный стиль
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
     if (window.Telegram.WebApp.setBackgroundColor) {
       window.Telegram.WebApp.setBackgroundColor('#0A0A12');
     }
@@ -575,211 +569,7 @@
     }
   }
 })();
-
-/* ============================================================
-   КОНФИГ: ссылка на Google Apps Script (PIPE)
-   ============================================================ */
-const PIPE_URL = 'https://script.google.com/macros/s/AKfycbz6_xGnp5YrngczI6QU1kYFEJWdpvMLhziijZ7S0kx9F3J6OaJAPeCA56SMyzoi_ng3/exec';
-
-/* ============================================================
-   ЧАТ С ИИ-АГЕНТОМ (через JSONP, без CORS)
-   ============================================================ */
-const chatBody  = document.getElementById('chatBody');
-const chatInput = document.getElementById('chatInput');
-const chatSend  = document.getElementById('chatSend');
-const typing    = document.getElementById('typing');
-
-let chatTimer = null;     // таймаут ожидания ответа
-let currentScript = null; // текущий активный <script> JSONP
-
-/* Глобальный callback для ответов чата */
-window.onAgent = function (data) {
-  // Очищаем таймер и тег script
-  clearTimeout(chatTimer);
-  removeScript();
-  hideTyping();
-
-  if (data && data.ok && data.reply) {
-    addMessage('agent', data.reply);
-  } else {
-    addMessage('agent', 'Агент временно недоступен. Попробуйте ещё раз или оставьте заявку ниже.');
-  }
-  unlockChat();
-};
-
-/* Добавление сообщения в чат */
-function addMessage(role, text) {
-  const el = document.createElement('div');
-  el.className = 'msg ' + (role === 'agent' ? 'agent' : 'user');
-  el.textContent = text;
-  // Вставляем перед индикатором «печатает…», чтобы он оставался внизу
-  chatBody.insertBefore(el, typing);
-  scrollChat();
-}
-
-/* Анимация «печатает…» */
-function showTyping() { typing.classList.add('show'); scrollChat(); }
-function hideTyping() { typing.classList.remove('show'); }
-
-/* Прокрутка чата вниз */
-function scrollChat() {
-  chatBody.scrollTop = chatBody.scrollHeight;
-}
-
-/* Блокировка/разблокировка кнопки чата */
-function lockChat() {
-  chatSend.disabled = true;
-  chatInput.disabled = true;
-}
-function unlockChat() {
-  chatSend.disabled = false;
-  chatInput.disabled = false;
-  chatInput.focus();
-}
-
-/* Удаление текущего JSONP-тега */
-function removeScript() {
-  if (currentScript && currentScript.parentNode) {
-    currentScript.parentNode.removeChild(currentScript);
-  }
-  currentScript = null;
-}
-
-/* Отправка сообщения агенту */
-function sendChat() {
-  const text = chatInput.value.trim();
-  if (!text) return;
-
-  // Показываем сообщение пользователя
-  addMessage('user', text);
-  chatInput.value = '';
-
-  // Блокируем ввод и показываем индикатор
-  lockChat();
-  showTyping();
-
-  // Создаём JSONP-запрос
-  const src = PIPE_URL +
-    '?action=chat' +
-    '&msg=' + encodeURIComponent(text) +
-    '&callback=onAgent';
-
-  currentScript = document.createElement('script');
-  currentScript.src = src;
-  currentScript.async = true;
-  currentScript.onerror = function () {
-    // Сеть/ошибка загрузки скрипта
-    clearTimeout(chatTimer);
-    removeScript();
-    hideTyping();
-    addMessage('agent', 'Агент временно недоступен. Проверьте подключение.');
-    unlockChat();
-  };
-  document.body.appendChild(currentScript);
-
-  // Таймаут 20 секунд
-  chatTimer = setTimeout(function () {
-    removeScript();
-    hideTyping();
-    addMessage('agent', 'Агент не ответил за 20 секунд. Попробуйте позже или оставьте заявку.');
-    unlockChat();
-  }, 20000);
-}
-
-/* Отправка по Enter */
-chatInput.addEventListener('keydown', function (e) {
-  if (e.key === 'Enter' && !chatSend.disabled) {
-    sendChat();
-  }
-});
-
-/* Приветствие агента при открытии */
-addMessage('agent', 'Привет! Я ИИ-ассистент Венеры. Расскажу про услуги, цены и сроки. Что вас интересует?');
-
-/* ============================================================
-   ФОРМА ЗАЯВКИ (через JSONP)
-   ============================================================ */
-const leadForm    = document.getElementById('leadForm');
-const leadSend    = document.getElementById('leadSend');
-const leadSuccess = document.getElementById('leadSuccess');
-
-let leadTimer = null;
-let leadScript = null;
-
-/* Глобальный callback для ответов формы */
-window.onLead = function (data) {
-  clearTimeout(leadTimer);
-  removeLeadScript();
-
-  if (data && data.ok) {
-    // Успех: показываем сообщение и очищаем форму
-    leadSuccess.classList.add('show');
-    leadForm.reset();
-    leadSend.disabled = false;
-    // Прячем сообщение об успехе через 6 секунд
-    setTimeout(function () { leadSuccess.classList.remove('show'); }, 6000);
-  } else {
-    // Ошибка: даём пользователю возможность попробовать снова
-    leadSend.disabled = false;
-    alert('Не удалось отправить заявку. Попробуйте ещё раз или напишите в Telegram @venera_poddergka');
-  }
-};
-
-function removeLeadScript() {
-  if (leadScript && leadScript.parentNode) {
-    leadScript.parentNode.removeChild(leadScript);
-  }
-  leadScript = null;
-}
-
-/* Отправка заявки */
-function sendLead(event) {
-  event.preventDefault();
-
-  const name    = document.getElementById('leadName').value.trim();
-  const contact = document.getElementById('leadContact').value.trim();
-  const message = document.getElementById('leadMessage').value.trim();
-
-  if (!name || !contact) return;
-
-  // Блокируем кнопку на время отправки
-  leadSend.disabled = true;
-  leadSuccess.classList.remove('show');
-
-  // JSONP-запрос
-  const src = PIPE_URL +
-    '?action=lead' +
-    '&name=' + encodeURIComponent(name) +
-    '&contact=' + encodeURIComponent(contact) +
-    '&message=' + encodeURIComponent(message) +
-    '&callback=onLead';
-
-  leadScript = document.createElement('script');
-  leadScript.src = src;
-  leadScript.async = true;
-  leadScript.onerror = function () {
-    clearTimeout(leadTimer);
-    removeLeadScript();
-    leadSend.disabled = false;
-    alert('Не удалось отправить заявку. Проверьте подключение.');
-  };
-  document.body.appendChild(leadScript);
-
-  // Таймаут 25 секунд для формы
-  leadTimer = setTimeout(function () {
-    removeLeadScript();
-    leadSend.disabled = false;
-    alert('Время ожидания истекло. Попробуйте позже или напишите в Telegram @venera_poddergka');
-  }, 25000);
-}
-
-/* ============================================================
-   ПРОКРУТКА К ФОРМЕ ЗАЯВКИ
-   ============================================================ */
-function scrollToLead() {
-  document.getElementById('lead').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  setTimeout(function () { document.getElementById('leadName').focus(); }, 600);
-}
 </script>
+<script src="assistant.js" defer></script>
 </body>
 </html>
