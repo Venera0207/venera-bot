@@ -109,6 +109,13 @@
     return null;
   }
 
+  function looksLikeContact(t) {
+    if (/@[a-zа-я0-9_.\-]{3,}/i.test(t)) return true;              /* @ник или e-mail */
+    if ((t.match(/\d/g) || []).length >= 10) return true;           /* телефон цифрами */
+    if (/\+?\d[\d\s\-()]{8,}/.test(t)) return true;              /* телефон с плюсом/скобками */
+    return false;
+  }
+
   function farewellMatch(text) {
     var t = ' ' + norm(text) + ' ';
     var kws = [' пока ', 'до свидания', 'всего доброго', 'до связи', 'прощай', 'доброй ночи'];
@@ -376,15 +383,23 @@
         U.agent('Понял, не передаю. Я всё равно рядом, если появятся вопросы.');
         return;
       }
-      var contact = text;
-      state.await = null;
-      U.typing(true);
-      window.veneraSendLead(
-        { name: contact.split(/\s+/)[0], contact: contact, message: '[диалог из чата, ждёт личного ответа Венеры] ' + state.dialog, source: 'chat-esc-' + location.hostname },
-        function () { U.typing(false); U.agent('✅ Передал диалог Венере: она уже видит его в своём Telegram и ответит вам лично туда, куда вы оставили контакт. А я по-прежнему на связи для любых вопросов.'); },
-        function () { U.typing(false); U.agent('Не получилось отправить автоматически. Напишите, пожалуйста, Венере напрямую: venera.web.4@gmail.com или Telegram — кнопка на сайте.'); }
-      );
-      return;
+      if (looksLikeContact(text)) {
+        var contact = text;
+        state.await = null;
+        U.typing(true);
+        window.veneraSendLead(
+          { name: contact.split(/\s+/)[0], contact: contact, message: '[диалог из чата, ждёт личного ответа Венеры] ' + state.dialog, source: 'chat-esc-' + location.hostname },
+          function () { U.typing(false); U.agent('✅ Передал диалог Венере: она уже видит его в своём Telegram и ответит вам лично туда, куда вы оставили контакт. А я по-прежнему на связи для любых вопросов.'); },
+          function () { U.typing(false); U.agent('Не получилось отправить автоматически. Напишите, пожалуйста, Венере напрямую: venera.web.4@gmail.com или Telegram — кнопка на сайте.'); }
+        );
+        return;
+      }
+      var kbNow = kbMatch(text);
+      if (!kbNow) {
+        U.agent('Похоже, это не контакт 🙂 Оставьте телефон (например, +7 9XX XXX-XX-XX), @ник в Telegram или e-mail — или напишите «отмена», и мы просто продолжим разговор.');
+        return;
+      }
+      state.await = null; /* это новый вопрос — проваливаемся в обычную обработку */
     }
 
     /* режим сбора контакта для заявки */
@@ -394,10 +409,20 @@
         U.agent('Хорошо, отменил. Я рядом, если появятся вопросы.');
         return;
       }
-      state.contact = text;
-      state.await = 'task';
-      U.agent('Принял. Теперь коротко опишите задачу — или напишите «готово», если вопрос уже был выше.');
-      return;
+      if (!looksLikeContact(text)) {
+        var kbNow2 = kbMatch(text);
+        if (!kbNow2) {
+          U.agent('Похоже, это не контакт 🙂 Оставьте телефон (например, +7 9XX XXX-XX-XX), @ник в Telegram или e-mail — или напишите «отмена», и мы просто продолжим разговор.');
+          return;
+        }
+        state.await = null; /* новый вопрос — проваливаемся в обычную обработку */
+        /* переходим к ответу на вопрос, контакт не сохраняем */
+      } else {
+        state.contact = text;
+        state.await = 'task';
+        U.agent('Принял. Теперь коротко опишите задачу — или напишите «готово», если вопрос уже был выше.');
+        return;
+      }
     }
     if (state.await === 'task') {
       var task = (/готов|не надо|все|всё/).test(norm(text)) ? state.lastQ : text;
