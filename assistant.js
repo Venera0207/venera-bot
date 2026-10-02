@@ -12,34 +12,40 @@
 (function () {
   'use strict';
 
-  var PIPE_URL = 'https://script.google.com/macros/s/AKfycbz6_xGnp5YrngczI6QU1kYFEJWdpvMLhziijZ7S0kx9F3J6OaJAPeCA56SMyzoi_ng3/exec';
+  var PIPE_URL = 'https://script.google.com/macros/s/AKfycbySBX4LcBbZm_PzSUvYIPXDqwRphZQgFWiEnhGteizA9RLnIcDmFZcjRZrZ8nfu_i6d/exec';
 
   /* ------------------------------------------------------------
      ЛОКАЛЬНАЯ БАЗА ЗНАНИЙ: мгновенные ответы без сети.
      k — ключевые слова (подстроки, регистр и «ё» не важны), a — ответ.
      ------------------------------------------------------------ */
   var KB = [
-    { k: ['здравств', 'привет', 'добрый день', 'добрый вечер', 'доброй ночи', 'хай'],
+    { k: ['здравств', 'привет', 'добрый день', 'добрый вечер', 'доброй ночи', 'хай'], s: 1,
       a: 'Здравствуйте! Я ИИ-ассистент Венеры. Рассказываю про услуги, цены, сроки и процесс работы. Опишите задачу своими словами или спросите то, что интересно.' },
-    { k: ['спасибо', 'благодар'],
+    { k: ['спасибо', 'благодар'], s: 1,
       a: 'Пожалуйста! Я всегда на связи. А для личной консультации напишите Венере через форму на сайте или в Telegram.' },
-    { k: ['цена', 'стоим', 'сколько стоит', 'дорого', 'бюджет', 'прайс', 'ценник'],
-      a: 'Коротко о ценах: лендинг на чистом коде — от 15 000 ₽ (одна страница без интеграций); всё, что думает, считает и общается — калькуляторы, каталоги с админкой, чат-боты, ИИ-ассистенты — от 25 000 ₽; карточки Ozon/WB — от 2 000 ₽. Корпоративный сайт и редизайн — расчёт после короткого брифа.' },
-    { k: ['лендинг', 'одностранич', 'landing', 'лендос'],
+    { k: ['цена', 'стоим', 'сколько стоит', 'дорого', 'бюджет', 'прайс', 'ценник', 'рубл'], c: 1,
+      a: 'Коротко о ценах: лендинг на чистом коде — от 15 000 ₽ (одна страница без интеграций); всё, что думает, считает и общается — калькуляторы, каталоги с админкой, чат-боты, ИИ-ассистенты — от 25 000 ₽; карточки Ozon/WB — от 2 000 ₽. Связка лендинг + ИИ-ассистент: 15 000 + 25 000 = от 40 000 ₽. Окончательная цена формируется из конкретного заказа и озвучивается Венерой лично.' },
+    { k: ['связк', 'лендинг с ассистент', 'сайт с ассистент', 'лендинг плюс', 'всё вместе', 'под ключ'], c: 1,
+      a: 'Связка лендинг + ИИ-ассистент складывается так: 15 000 ₽ лендинг + 25 000 ₽ ассистент = от 40 000 ₽. Ассистент при этом настраивается под ваши материалы и живёт прямо на странице. Окончательная цена формируется из конкретного заказа и озвучивается Венерой лично.' },
+    { k: ['лендинг', 'одностранич', 'landing', 'лендос'], c: 1,
       a: 'Лендинг на чистом коде — от 15 000 ₽: одна страница, уникальный дизайн, быстрая загрузка, без конструкторов. Интеграции, калькуляторы и каталоги в эту цену не входят — это отдельные услуги.' },
-    { k: ['бот', 'ассистент', 'агент', 'нейросет', 'ии-', 'ии ', 'ai', 'чат-бот', 'умный помощник'],
+    { k: ['бот', 'ассистент', 'агент', 'нейросет', 'ии-', 'ии ', 'ai', 'чат-бот', 'умный помощник'], c: 1,
       a: 'Венера создаёт ИИ-ассистентов и чат-ботов: они консультируют клиентов на сайте и в мессенджерах, собирают заявки и работают круглосуточно — от 25 000 ₽. Кстати, я и есть такой ассистент — можете тестировать меня сколько угодно.' },
-    { k: ['сайт', 'каталог', 'корпоратив', 'витрин', 'интернет-магазин'],
+    { k: ['каталог', 'корпоратив', 'витрин', 'интернет-магазин'], c: 1,
       a: 'Сайты и каталоги с админкой Венера делает вручную, на чистом коде: сайт принадлежит вам, без ежемесячной платы платформе. Проекты с каталогом, админкой или ИИ-ассистентом — от 25 000 ₽, точная цена после короткого брифа.' },
-    { k: ['ozon', 'wb', 'wildberries', 'озон', 'валдберис', 'вайлдберриз', 'карточк товар'],
+    { k: ['ozon', 'wb', 'wildberries', 'озон', 'валдберис', 'вайлдберриз', 'карточк товар'], c: 1,
       a: 'Карточки товаров для Ozon и Wildberries — от 2 000 ₽ за карточку: дизайн, который повышает конверсию.' },
-    { k: ['редизайн', 'обновить сайт', 'передела', 'старый сайт'],
+    { k: ['редизайн', 'обновить сайт', 'передела', 'старый сайт'], c: 1,
       a: 'Редизайн — обновление визуальной системы и интерфейса без потери смысла и наработок. Цена — после просмотра текущего сайта, ориентировочно от 25 000 ₽.' },
-    { k: ['тильд', 'tilda', 'wix', 'викс', 'конструктор', 'таплик'],
-      a: 'Венера работает без конструкторов: только чистый код вручную. Сайт загружается быстрее, принадлежит вам навсегда и переносится куда угодно, без ежемесячной платы платформе.' },
-    { k: ['срок', 'как быстро', 'когда будет готов', 'длительн', 'время выполн', 'как долго'],
+    { k: ['на тильде сайт сделаете', 'сделаете на тильде', 'на тильде сделаете', 'на тильде возьметесь'], e: 1,
+      a: 'Венера работает только с чистым кодом, без конструкторов, и цены начинаются от 15 000 ₽. Но я сейчас спрошу у неё лично про ваш вопрос.' },
+    { k: ['сделаете за', 'за 5000', 'за пять тысяч', 'скидк', 'дешевл', 'подешев', 'торг', 'а подешевле'], e: 1,
+      a: 'Цены Венеры начинаются от 15 000 ₽ за лендинг и от 25 000 ₽ за решения с ИИ — это честная цена без завышений. Но ваше пожелание я передам Венере лично прямо сейчас.' },
+    { k: ['тильд', 'tilda', 'wix', 'викс', 'конструктор', 'таплик', 'на тильде', 'отлич', 'разниц', 'почему не', 'что лучше', 'плюсы', 'минусы'],
+      a: 'Главные отличия сайта на чистом коде от конструктора (Tilda, Wix): 1) Скорость — нет тяжёлого слоя платформы, страницы открываются быстрее. 2) Собственность — сайт ваш навсегда, без ежемесячной платы платформе. 3) Уникальность — дизайн собирается под ваш бизнес, а не из шаблона, как у тысяч других. 4) Свобода — код можно перенести на любой хостинг и дорабатывать без ограничений платформы. 5) Любая функциональность — каталоги, калькуляторы, ИИ-ассистенты; конструктор упирается в свои готовые блоки. Поэтому Венера и работает без конструкторов.' },
+    { k: ['срок', 'как быстро', 'когда будет готов', 'длительн', 'время выполн', 'как долго'], c: 1,
       a: 'Сроки: простой лендинг — около недели; проекты с каталогом, админкой или ИИ-ассистентом — от 2 до 4 недель. Точный срок Венера называет после короткого брифа.' },
-    { k: ['оплат', 'рассроч', 'предоплат', 'частям', 'как платит'],
+    { k: ['оплат', 'рассроч', 'предоплат', 'частям', 'как платит'], c: 1,
       a: 'Оплата обсуждается индивидуально, по большим проектам возможна рассрочка — например, двумя платежами. Все условия фиксируются до начала работ.' },
     { k: ['портфолио', 'пример', 'работ', 'кейс', 'готовые сайт', 'посмотреть сайт'],
       a: 'В портфолио Венеры уже больше семи проектов: от лендинга сладкой студии до сайта юридических услуг и редизайнов. Ссылки на живые работы — в разделе «Проекты» на этом сайте.' },
@@ -61,7 +67,16 @@
       a: 'Я — программа: база знаний, которую собрала Венера, плюс подключение к нейросети для сложных вопросов. Я не человек, но заявки передаю человеку — Венера отвечает лично.' }
   ];
 
+  /* Сирены в Telegram: можно отключить, поставив false */
+  var ALERT_ON_NOANSWER = true;  /* клиент не получил ответ нейросети */
+  var ALERT_ON_ESC = true;       /* горячий коммерческий вопрос (Тильда/торг) */
+
   var GREETING = 'Привет! Я ИИ-ассистент Венеры. На частые вопросы отвечаю мгновенно сам, для сложных подключаю нейросеть — иногда ей нужно пару минут, я честно предупрежу. Что интересует: услуги, цены, сроки?';
+
+  /* Мягкие крючки к контакту: не чаще одного за диалог */
+  var HOOK_TAIL = 'Если актуально — могу передать наш диалог Венере: она уточнит детали и назовёт точную цену. Просто оставьте контакт.';
+  var NUDGE = 'Кстати, я могу сохранить наш разговор и передать Венере, чтобы вам не пришлось пересказывать всё заново. Передать?';
+  var FAREWELL = 'Рад был помочь! Если созреете обсуждать задачу — Венера в одном клике: форма на сайте или Telegram.';
 
   /* ------------------------------------------------------------
      СЛУЖЕБНОЕ
@@ -69,16 +84,38 @@
   function norm(s) {
     return String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9\s]/gi, ' ');
   }
-  function kbAnswer(text) {
+  function kbMatch(text) {
     var t = norm(text), best = null, bestScore = 0;
     for (var i = 0; i < KB.length; i++) {
+      if (KB[i].s) continue; /* вежливые реплики не конкурируют с деловыми темами */
       var score = 0;
       for (var j = 0; j < KB[i].k.length; j++) {
-        if (t.indexOf(norm(KB[i].k[j]).replace(/^\s+|\s+$/g, '')) !== -1) score++;
+        var kw = norm(KB[i].k[j]).replace(/^\s+|\s+$/g, '');
+        if (kw && t.indexOf(kw) !== -1) score += kw.length; /* чем весомее совпадение, тем важнее тема */
       }
-      if (score > bestScore) { bestScore = score; best = KB[i].a; }
+      if (score > bestScore) { bestScore = score; best = KB[i]; }
     }
     return best;
+  }
+  function socialMatch(text) {
+    var t = norm(text);
+    for (var i = 0; i < KB.length; i++) {
+      if (!KB[i].s) continue;
+      for (var j = 0; j < KB[i].k.length; j++) {
+        var kw = norm(KB[i].k[j]).replace(/^\s+|\s+$/g, '');
+        if (kw && t.indexOf(kw) !== -1) return KB[i];
+      }
+    }
+    return null;
+  }
+
+  function farewellMatch(text) {
+    var t = ' ' + norm(text) + ' ';
+    var kws = [' пока ', 'до свидания', 'всего доброго', 'до связи', 'прощай', 'доброй ночи'];
+    for (var i = 0; i < kws.length; i++) {
+      if (t.indexOf(kws[i]) !== -1) return true;
+    }
+    return false;
   }
 
   var cbCounter = 0;
@@ -117,11 +154,30 @@
       '&message=' + encodeURIComponent(payload.message || '') +
       '&source=' + encodeURIComponent(payload.source || location.hostname);
     jsonp(url, 25000, {
-      ok: function (data) { (data && data.ok) ? (onOk && onOk()) : (onFail && onFail()); },
+      ok: function (data) {
+        if (data && data.ok) { sendLog(payload.contact || '', payload.message || '', 'lead'); onOk && onOk(); }
+        else { onFail && onFail(); }
+      },
       fail: function () { onFail && onFail(); },
       timeout: function () { onFail && onFail(); }
     });
   };
+
+  function sendAlert(text) {
+    jsonp(PIPE_URL + '?action=alert&text=' + encodeURIComponent(text), 15000, {});
+  }
+
+  function pushH(role, text) {
+    state.hist.push({ role: role, text: String(text).slice(0, 400) });
+    if (state.hist.length > 8) state.hist.shift();
+  }
+  function sendLog(client, bot, outcome) {
+    jsonp(PIPE_URL + '?action=log' +
+      '&page=' + encodeURIComponent(location.pathname || '') +
+      '&client=' + encodeURIComponent(String(client).slice(0, 300)) +
+      '&bot=' + encodeURIComponent(String(bot).slice(0, 300)) +
+      '&outcome=' + encodeURIComponent(outcome), 15000, {});
+  }
 
   /* ------------------------------------------------------------
      ИНТЕРФЕЙСЫ: родной чат (бот-сайт) или виджет (портфолио)
@@ -218,9 +274,63 @@
   }
 
   /* ------------------------------------------------------------
+     УДАЛЁННЫЙ ОТВЕТ: честное ожидание + один автоповтор + полезный пол
+     ------------------------------------------------------------ */
+  function usefulFloor(U, text) {
+    U.agent('Нейросеть сейчас недоступна, но я не оставлю вас без ответа: лендинги Венеры начинаются от 15 000 ₽, боты и ИИ-ассистенты — от 25 000 ₽, сроки — от 5 дней, консультация и расчёт бесплатны. Точную цену Венера назовёт лично после короткого брифа.');
+    sendLog(text, '(полезный пол)', 'no-answer');
+    if (ALERT_ON_NOANSWER) {
+      sendAlert('Клиент не получил ответа нейросети: «' + text + '» (страница ' + (location.pathname || '') + '). Диалог в журнале.');
+    }
+    startLeadCapture(U);
+  }
+
+  function remoteAttempt(U, text, histSnap, retry) {
+    U.typing(true);
+    var warned = false;
+    var warnTimer = setTimeout(function () {
+      warned = true;
+      U.agent(retry
+        ? 'Проверяю ещё раз, это займёт полминуты. Спасибо, что ждёте.'
+        : 'Нейросети нужно чуть больше времени — сложные вопросы она обдумывает до минуты. Подождём вместе? Если вам некогда — напишите «контакт», и я передам вопрос Венере лично.');
+    }, retry ? 8000 : 12000);
+    jsonp(PIPE_URL + '?action=chat&msg=' + encodeURIComponent(text) + '&hist=' + encodeURIComponent(JSON.stringify(histSnap)), retry ? 30000 : 45000, {
+      ok: function (data) {
+        clearTimeout(warnTimer);
+        U.typing(false);
+        if (data && data.ok && data.reply) {
+          U.agent(data.reply);
+          pushH('agent', data.reply);
+          sendLog(text, data.reply, 'ai');
+          state.lastExchange = 'Клиент: ' + text + ' | Бот: ' + data.reply;
+          if (!state.hookUsed && state.msgCount >= 3 && !state.await) {
+            state.hookUsed = true;
+            state.await = 'nudge';
+            U.agent(NUDGE);
+          }
+        } else if (!retry) {
+          remoteAttempt(U, text, histSnap, true); /* тихий автоповтор */
+        } else {
+          usefulFloor(U, text);
+        }
+      },
+      fail: function () {
+        clearTimeout(warnTimer);
+        U.typing(false);
+        if (!retry) { remoteAttempt(U, text, histSnap, true); } else { usefulFloor(U, text); }
+      },
+      timeout: function () {
+        clearTimeout(warnTimer);
+        U.typing(false);
+        if (!retry) { remoteAttempt(U, text, histSnap, true); } else { usefulFloor(U, text); }
+      }
+    });
+  }
+
+  /* ------------------------------------------------------------
      ДВИЖОК ДИАЛОГА
      ------------------------------------------------------------ */
-  var state = { await: null, contact: '', lastQ: '' };
+  var state = { await: null, contact: '', lastQ: '', hookUsed: false, msgCount: 0, lastExchange: '', dialog: '', hist: [] };
 
   function routeFromUI(U) {
     var text = (U._input.value || '').trim();
@@ -231,6 +341,51 @@
 
   function handle(U, text) {
     U.user(text);
+    var histSnap = state.hist.slice(0, 6);
+    pushH('user', text);
+    state.msgCount++;
+
+    /* деликатный вопрос после ~3-го сообщения: да/нет */
+    if (state.await === 'nudge') {
+      var t = norm(text);
+      state.await = null;
+      if (/да|перед|хочу|давай|ок /.test(t)) {
+        state.dialog = state.lastExchange;
+        state.await = 'esc_contact';
+        U.agent('Отлично. Напишите одним сообщением, как с вами связаться — @telegram, телефон или e-mail — и я передам диалог сразу.');
+      } else if (/нет|не надо|отмен|позже/.test(t)) {
+        U.agent('Понял, не передаю. Я всё равно рядом для любых вопросов.');
+      } else {
+        U.agent('Если согласны — напишите «передать» и оставьте контакт. Если нет — ничего страшного, я всё равно на связи.');
+      }
+      return;
+    }
+
+    /* прощание: тёплый финал, не считаем крючком */
+    if (farewellMatch(text)) {
+      state.await = null;
+      U.agent(FAREWELL);
+      sendLog(text, FAREWELL, 'bye');
+      return;
+    }
+
+    /* режим эскалации: клиент оставил контакт для личного ответа Венеры */
+    if (state.await === 'esc_contact') {
+      if (norm(text).indexOf('отмена') !== -1) {
+        state.await = null;
+        U.agent('Понял, не передаю. Я всё равно рядом, если появятся вопросы.');
+        return;
+      }
+      var contact = text;
+      state.await = null;
+      U.typing(true);
+      window.veneraSendLead(
+        { name: contact.split(/\s+/)[0], contact: contact, message: '[диалог из чата, ждёт личного ответа Венеры] ' + state.dialog, source: 'chat-esc-' + location.hostname },
+        function () { U.typing(false); U.agent('✅ Передал диалог Венере: она уже видит его в своём Telegram и ответит вам лично туда, куда вы оставили контакт. А я по-прежнему на связи для любых вопросов.'); },
+        function () { U.typing(false); U.agent('Не получилось отправить автоматически. Напишите, пожалуйста, Венере напрямую: venera.web.4@gmail.com или Telegram — кнопка на сайте.'); }
+      );
+      return;
+    }
 
     /* режим сбора контакта для заявки */
     if (state.await === 'contact') {
@@ -257,47 +412,39 @@
     }
 
     /* 1) мгновенный ответ из локальной базы знаний */
-    var local = kbAnswer(text);
-    if (local) {
+    var intent = kbMatch(text) || socialMatch(text);
+    if (intent) {
       U.typing(true);
       setTimeout(function () {
         U.typing(false);
-        U.agent(local);
+        U.agent(intent.a);
+        pushH('agent', intent.a);
+        sendLog(text, intent.a, intent.e ? 'esc-offer' : (intent.c ? 'kb-commercial' : 'kb'));
+        state.lastExchange = 'Клиент: ' + text + ' | Бот: ' + intent.a;
+        if (intent.e) {
+          /* деликатная тема: сразу передаём диалог Венере, клиенту нужен контакт */
+          state.dialog = 'Клиент: ' + text + ' | Бот: ' + intent.a;
+          state.await = 'esc_contact';
+          U.agent('Подскажите, как с вами связаться — @telegram, телефон или e-mail — и я передам весь диалог Венере прямо сейчас.');
+          if (ALERT_ON_ESC) {
+            sendAlert('Горячий вопрос: «' + text + '» (страница ' + (location.pathname || '') + '). Диалог в журнале, ждём контакт клиента.');
+          }
+        } else if (intent.c && !state.hookUsed) {
+          state.hookUsed = true;
+          U.agent(HOOK_TAIL);
+        }
+        if (!state.hookUsed && state.msgCount >= 3 && !state.await) {
+          state.hookUsed = true;
+          state.await = 'nudge';
+          U.agent(NUDGE);
+        }
       }, 500 + Math.round(Math.random() * 500));
       return;
     }
 
-    /* 2) сложный вопрос: нейросеть через PIPE, с честным ожиданием */
+    /* 2) сложный вопрос: нейросеть через PIPE, с честным ожиданием и автоповтором */
     state.lastQ = text;
-    U.typing(true);
-    var warned = false;
-    var warnTimer = setTimeout(function () {
-      warned = true;
-      U.agent('Нейросети нужно чуть больше времени — сложные вопросы она обдумывает до минуты. Подождём вместе? Если вам некогда — напишите «контакт», и я передам вопрос Венере лично.');
-    }, 12000);
-
-    jsonp(PIPE_URL + '?action=chat&msg=' + encodeURIComponent(text), 45000, {
-      ok: function (data) {
-        clearTimeout(warnTimer);
-        U.typing(false);
-        if (data && data.ok && data.reply) {
-          U.agent(data.reply);
-        } else {
-          startLeadCapture(U);
-        }
-      },
-      fail: function () {
-        clearTimeout(warnTimer);
-        U.typing(false);
-        startLeadCapture(U);
-      },
-      timeout: function () {
-        clearTimeout(warnTimer);
-        U.typing(false);
-        U.agent(warned ? 'Нейросеть сегодня задумалась дольше обычного.' : 'Не смог дождаться ответа нейросети.');
-        startLeadCapture(U);
-      }
-    });
+    remoteAttempt(U, text, histSnap, false);
   }
 
   function startLeadCapture(U) {
@@ -349,7 +496,14 @@
   /* ------------------------------------------------------------
      СТАРТ
      ------------------------------------------------------------ */
+  window.veneraHandleTest = function (U, text) { handle(U, text); };
+  window.veneraKBTest = {
+    kb: function (t) { var m = kbMatch(t); return m ? m.a : null; },
+    soc: function (t) { var m = socialMatch(t); return m ? m.a : null; },
+    esc: function (t) { var m = kbMatch(t); return !!(m && m.e); }
+  }; /* служебный крючок для самопроверки */
   function init() {
+    jsonp(PIPE_URL + '?action=test', 10000, {}); /* тихий прогрев трубы, чтобы первый вопрос попал в прогретую */
     if (document.getElementById('chatBody')) {
       ui = makeBotUI();
       ui.agent(GREETING);
